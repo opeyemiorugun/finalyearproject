@@ -51,7 +51,7 @@ def app():
     st.title("Upload Appliance Load Data")
 
     # URLs of the files in your GitHub repository
-    base_url = "https://raw.githubusercontent.com/opeyemiorugun/Empower/master/"  # Adjust the URL based on your repository structure
+    base_url = "https://raw.githubusercontent.com/opeyemiorugun/Empower/main/"  # Adjust the URL based on your repository structure
     label_file_url = base_url + "labels.dat"
     weather_file_url = base_url + "weather.csv"
     csv_files_urls = [base_url + f"channel_{i}.dat" for i in range(2, 26)]  # Adjust the filenames as per your repository
