@@ -18,7 +18,6 @@ def fetch_github_file(url):
         st.error(f"Failed to fetch file from {url}")
         return None
 
-@st.cache_data
 def load_model(appliances):
     base_url = "https://raw.githubusercontent.com/opeyemiorugun/finalyearproject/master/models/"  # Update with your GitHub repository URL
     models = {}
