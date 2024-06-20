@@ -6,3 +6,4 @@ matplotlib
 xgboost
 lightgbm
 statsmodels
+requests
