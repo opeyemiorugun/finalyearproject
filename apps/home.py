@@ -1,7 +1,15 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import joblib
+import requests
+from io import StringIO
+
+def fetch_github_file(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return StringIO(response.text)
+    else:
+        st.error(f"Failed to fetch file from {url}")
+        return None
 
 def load_data(uploaded_files, label_file):
     labels = pd.read_csv(label_file, delimiter="\s+", names=["no", "title"])
@@ -39,16 +47,24 @@ def load_data(uploaded_files, label_file):
 def app():
     st.title("Upload Appliance Load Data")
 
-    label_file = st.file_uploader("Upload Label File (labels.dat)", type=["dat"])
+    # URLs of the files in your GitHub repository
+    base_url = "https://raw.githubusercontent.com/opeyemiorugun/finalyearproject/main/"  # Adjust the URL based on your repository structure
+    label_file_url = base_url + "labels.dat"
+    weather_file_url = base_url + "weather.csv"
+    csv_files_urls = [base_url + f"channel_{i}.csv" for i in range(2, 25)]  # Adjust the filenames as per your repository
+
+    # Fetch the label file from GitHub
+    label_file = fetch_github_file(label_file_url)
     if label_file:
-        uploaded_files = st.file_uploader("Choose CSV files", accept_multiple_files=True, type=["csv", "dat"])
-        if uploaded_files:
+        uploaded_files = [fetch_github_file(url) for url in csv_files_urls]
+        if all(uploaded_files):
             data = load_data(uploaded_files, label_file)
             if not data["dataframe"].empty:
                 st.write("Data Loaded Successfully")
                 st.write(data["dataframe"].head())
                 
-                weather_file = st.file_uploader("Upload Weather File", type=["csv"])
+                # Fetch the weather file from GitHub
+                weather_file = fetch_github_file(weather_file_url)
                 if weather_file:
                     try:
                         weather_csv = pd.read_csv(weather_file)
