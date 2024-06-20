@@ -1,0 +1,82 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import joblib
+
+def load_data(uploaded_files, label_file):
+    labels = pd.read_csv(label_file, delimiter="\s+", names=["no", "title"])
+    label_dict = labels.set_index('no').to_dict()['title']
+
+    dataframes_list = []
+    column_names = []
+
+    for uploaded_file in uploaded_files:
+        appliance_number = int(uploaded_file.name.split('_')[1].split('.')[0])
+
+        # Debug: Show appliance number and label dictionary
+        st.write(f"Appliance number from file: {appliance_number}")
+        st.write(f"Label dictionary: {label_dict}")
+
+        # Check if appliance_number exists in label_dict
+        if appliance_number not in label_dict:
+            st.error(f"Appliance number {appliance_number} not found in label file.")
+            continue
+
+        appliance_name = label_dict[appliance_number]
+        column_names.append(appliance_name)
+
+        temp = pd.read_csv(uploaded_file, delimiter="\s+", names=["timestamp", "Power"], dtype={'timestamp': 'float64'}, engine='python')
+        temp['datetime'] = pd.to_datetime(temp['timestamp'], unit='s')
+        temp.drop(columns=['timestamp'], inplace=True)
+        temp.set_index('datetime', inplace=True)
+        temp.columns = [appliance_name]
+        dataframes_list.append(temp)
+
+    df = pd.concat(dataframes_list, axis=1) if dataframes_list else pd.DataFrame()
+    
+    return {"dataframe": df, "column_names": column_names}
+
+def app():
+    st.title("Upload Appliance Load Data")
+
+    label_file = st.file_uploader("Upload Label File (labels.dat)", type=["dat"])
+    if label_file:
+        uploaded_files = st.file_uploader("Choose CSV files", accept_multiple_files=True, type=["csv", "dat"])
+        if uploaded_files:
+            data = load_data(uploaded_files, label_file)
+            if not data["dataframe"].empty:
+                st.write("Data Loaded Successfully")
+                st.write(data["dataframe"].head())
+                
+                weather_file = st.file_uploader("Upload Weather File", type=["csv"])
+                if weather_file:
+                    try:
+                        weather_csv = pd.read_csv(weather_file)
+                        st.write("Weather Data Loaded Successfully")
+                        st.write(weather_csv.head())
+
+                        # Store data in session state
+                        st.session_state['uploaded_data'] = data["dataframe"]
+                        st.session_state['column_names'] = data["column_names"]
+                        st.session_state["weather_data"] = weather_csv
+
+                        # Navigation buttons
+                        if st.button("Go to Power Forecasting"):
+                            st.session_state['page'] = 'Power Forecasting'
+                        if st.button("Go to Electricity Theft Detection"):
+                            st.session_state['page'] = 'Electricity Theft Detection'
+                        if st.button("Go to Energy Optimization"):
+                            st.session_state['page'] = 'Energy Optimization'
+                    except Exception as e:
+                        st.error(f"Error reading weather file: {e}")
+                else:
+                    st.warning("Please upload the weather file.")
+            else:
+                st.error("No valid data found.")
+        else:
+            st.error("No files uploaded.")
+    else:
+        st.error("Please upload the label file.")
+
+if __name__ == "__main__":
+    app()
