@@ -4,11 +4,13 @@ import requests
 from io import StringIO
 
 def fetch_github_file(url):
+    st.write(f"Fetching URL: {url}")
     response = requests.get(url)
     if response.status_code == 200:
+        st.write(f"Successfully fetched file from {url}")
         return StringIO(response.text), url.split('/')[-1]  # Return file-like object and filename
     else:
-        st.error(f"Failed to fetch file from {url}")
+        st.error(f"Failed to fetch file from {url} with status code {response.status_code}")
         return None, None
 
 def load_data(uploaded_files):
@@ -49,11 +51,10 @@ def app():
     st.title("Upload Appliance Load Data")
 
     # URLs of the files in your GitHub repository
-    base_url = "https://raw.githubusercontent.com/opeyemiorugun/Empower/master/data/"  # Adjust the URL based on your repository structure
+    base_url = "https://raw.githubusercontent.com/opeyemiorugun/Empower/master/data/house_5/"  # Adjust the URL based on your repository structure
     label_file_url = base_url + "labels.dat"
-    weather_file_url = base_url + "weather.csv"
-    csv_files_urls = [base_url +  "house_5/" + f"channel_{i}.dat" for i in range(2, 26)]  # Adjust the filenames as per your repository
-
+    weather_file_url = "https://raw.githubusercontent.com/opeyemiorugun/Empower/master/data/weather.csv"
+    csv_files_urls = [base_url + f"channel_{i}.dat" for i in range(2, 26)]  # Adjust the filenames as per your repository
 
     # Fetch the label file from GitHub
     label_file, label_filename = fetch_github_file(label_file_url)
