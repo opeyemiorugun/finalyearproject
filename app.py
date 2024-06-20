@@ -4,7 +4,8 @@ from apps import home, power_forecasting, electricity_theft_detection, energy_op
 
 # Set page config at the top of the main script
 st.set_page_config(
-    page_title="Empower",
+    page_title="Appliance Load Data Analysis",
+    layout="wide"
     page_icon="💡",
 )
 
